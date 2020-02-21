@@ -1,21 +1,17 @@
 #!/bin/sh
 
-# Example Menu from Drive Output
-# value="$(dialog --backtitle "test" --radiolist "Select" 10 40 4 `(fdisk -l | grep "Disk /dev" | awk '{print $2}' | tr -d ':' | head -n -1 | awk '{print $1" "$1" on"}' ORS=" ")` 3>&1 1>&2 2>&3 )"
-
 usage() {
     echo "run install.sh to install"
 }
 
+error() { clear; printf "Exitting: %s\\n\\n" "$1"; exit 1; }
+
 # Select Drive Dialog
 selectDrive() {
-    drive=$()
-    dialog --backtitle "CPU Selection" --radiolist "Select CPU type:" 10 40 4 \
-    1 386SX off 2 386DX on  3 486SX off 4 486DX off
+    driveList="$(sudo lsblk -o name,model,size -d -e7 | tail -n +2 | awk '{print $1" "$2"-("$3")"}')"
+    value="$(whiptail --title "Drive Selection" --menu "Choose an target drive" 14 42 6 $driveList 3>&1 1>&2 2>&3)" || error "Cancelled Drive Select"
+    echo $value
 }
 
-prepDrive() {
-    # 
-}
+selectDrive
 
-sgdisk -z /dev/sda
