@@ -21,7 +21,13 @@ welcomemsg() { \
 }
 
 preinstallmsg() { \
-	whiptail --title "Let's get started" --yes-button "Let's Go!" --no-button "Wait, nah" --yesno "This script will now install Arch based on these given specifications: ..." 10 50 || { clear; exit; }
+	whiptail --title "Let's get started" --yes-button "Let's Go!" --no-button "Wait, nah" --yesno \
+    "This script will now install Arch...\nUser: $name \nDrive: $targetDrive" 10 50 || { clear; exit; }
+}
+
+dryrunmsg() { \
+	whiptail --title "Dry Run Output" --yes-button "Looks Good!" --no-button "Hmm..." --yesno \
+    "This script would install on live using these settings: ...\nUser: $name \nDrive: $targetDrive" 10 50 || { clear; exit; }
 }
 
 checkUEFI() {
@@ -30,10 +36,9 @@ checkUEFI() {
 
 selectKeyboard() {
     keyboardDir="/usr/share/kbd/keymaps"
-    keyboardList=$(find /usr/share/kbd/keymaps -name '*.map.gz' | sort -z | awk '{print substr($1,24,length($1))}' | tr '/' ' ' |  awk '{ for (i=1; i<=NF; i++) printf "/%s", $i ; printf " %s ",substr($NF,1,length($NF)-7) }' | awk '{printf "/i386/qwerty/uk.map.gz uk /i386/qwerty/us.map.gz us %s",$0}')
-    echo $keyboardList > kblist
+    keyboardList=$(find /usr/share/kbd/keymaps -name '*.map.gz' | sort -z | awk '{print substr($1,24,length($1))}' | tr '/' ' ' |  awk '{ printf " %s ",substr($NF,1,length($NF)-7) ; for (i=1; i<=NF; i++) printf "/%s", $i }' | awk '{printf "uk /i386/qwerty/uk.map.gz us /i386/qwerty/us.map.gz %s",$0}')
     keyboardSelected="$(whiptail --title "Keyboard Selection" --menu "Choose your keyboard layout" 24 100 16 $keyboardList 3>&1 1>&2 2>&3)" || error "Cancelled Keyboard Select)"
-    keyboard="$keyboardDir$keyboardSelected"
+    echo $keyboardSelected
 }
 
 # Select Drive Dialog
@@ -57,7 +62,7 @@ getUsername() {
 }
 
 getUserPass() {
-    pass1=$(whiptail --nocancel --passwordbox "Enter a password for that user." 8 60 3>&1 1>&2 2>&3 3>&1)
+    pass1=$(whiptail --nocancel --passwordbox "Enter a password for user '$name'." 8 60 3>&1 1>&2 2>&3 3>&1)
 	pass2=$(whiptail --nocancel --passwordbox "Retype password." 8 60 3>&1 1>&2 2>&3 3>&1)
 	while ! [ "$pass1" = "$pass2" ]; do
 		unset pass2
@@ -75,32 +80,38 @@ while getopts "hdq" o; do case "${o}" in
 esac done
 
 if [ ! -z ${quick+x} ]; then 
-    echo "Quick Setup"
+    keyboard="/usr/share/kbd/keymaps/i386/qwerty/uk.map.gz"
+    loadkeys $keyboard
+    checkUEFI
+
+    echo $isUEFI
+    name=jazer
+
+    selectDrive
+    getUserPass
+    dryrunmsg
+
 else
-    echo "Full Setup"
-fi
+    welcomemsg
+    checkUEFI
 
-checkUEFI
+    selectKeyboard
+    selectDrive
+    getUsername
+    getUserPass
 
-echo $isUEFI
+    preinstallmsg
+    if [ -z ${dryrun+x} ]; then 
+        echo "Please press CTRL+C within the next 5 seconds to cancel"
+        sleep 5
+        #echo "Unmounting Target Device" && sudo umount /dev/$targetDrive?* >/dev/null 2>&1
+        #echo "Setting disk to GPT" && sgdisk -z /dev/$targetDrive  >/dev/null 2>&1
+        #
+    else
+        echo "Dry Run"
+        sleep 5
 
-selectKeyboard
 
-welcomemsg
+    fi
 
-selectDrive
-
-getUsername
-
-getUserPass
-
-preinstallmsg
-
-if [ -z ${dryrun+x} ]; then 
-    echo "Actual"
-    #echo "Unmounting Target Device" && sudo umount /dev/$targetDrive?* >/dev/null 2>&1
-    #echo "Setting disk to GPT" && sgdisk -z /dev/$targetDrive  >/dev/null 2>&1
-    #
-else
-    echo "Dry Run"
 fi
