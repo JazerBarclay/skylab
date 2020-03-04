@@ -60,7 +60,7 @@ sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' << EOF | sudo fdisk $1
   n # new partition
   1 # partition number 1
     # default - start at beginning of disk 
-  +512M # 512 MB boot/efi parttion
+  +512M # 512 MB efi parttion
   t # change partition type
   1 # set to EFI boot
   n # new partition
@@ -179,11 +179,11 @@ if [ ! -z $quick ]; then
     if [ -z $isUEFI ]; then
         partition_bios_drive /dev/$targetDrive
         mkfs.fat -F 32 /dev/${targetDrive}1
-        mkfs.ext4 /dev/${targetDrive}2
+        mkfs.ext4 -F /dev/${targetDrive}2
     else 
         partition_efi_drive /dev/$targetDrive
         mkfs.fat -F 32 /dev/${targetDrive}1
-        mkfs.ext4 /dev/${targetDrive}2
+        mkfs.ext4 -F /dev/${targetDrive}2
     fi
     
     mount /dev/${targetDrive}2 /mnt
