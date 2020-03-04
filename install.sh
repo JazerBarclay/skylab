@@ -194,7 +194,7 @@ if [ ! -z $quick ]; then
     fi
     
     mount /dev/${targetDrive}2 /mnt
-    mkdir /mnt/efi && mount /dev/${targetDrive}2 /mnt/efi
+    mkdir /mnt/efi && mount /dev/${targetDrive}1 /mnt/efi
 
 
     rankPacMirrors
