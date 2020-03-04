@@ -3,6 +3,8 @@
 RED='\033[0;31m'
 NC='\033[0m'
 
+printRED() { printf "\n${RED}$*${NC}\n"; }
+
 # Message to show how the command can be run
 usage() {
     echo "Usage: $0 [options]..."
@@ -15,8 +17,7 @@ usage() {
     echo ""
 }
 
-printRED() { printf "\n${RED}$*${NC}\n"; }
-
+# Create a text menu from an array argument
 menu_from_array () {
     select item; do
         # Check the selected menu item number
@@ -72,6 +73,12 @@ EOF
 
 }
 
+
+rankMirrors() {
+    cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.backup
+    sed -i 's/^#Server/Server/' /etc/pacman.d/mirrorlist.backup
+    rankmirrors -n 6 /etc/pacman.d/mirrorlist.backup > /etc/pacman.d/mirrorlist
+}
 
 # Welcome greeting upon first running the script
 welcomemsg() { \
@@ -155,7 +162,8 @@ if [ ! -z $quick ]; then
     printRED "Enter password (asked once so please ensure correct)"
     read -s userPass
 
-    printf "${RED}UEFI:${NC} " && 
+    echo "UEFI: "
+    [ -z isUEFI ] && echo "No" || echo "Yes"
     echo "Keyboard: $keyboard"
     echo "Username: $name"
     echo "Password: ****"
@@ -185,8 +193,11 @@ if [ ! -z $quick ]; then
         mkfs.ext4 /dev/${targetDrive}2
     fi
     
+    mount /dev/${targetDrive}2 /mnt
+    mkdir /mnt/efi && mount /dev/${targetDrive}2 /mnt/efi
 
 
+    rankMirrors
 
 else
     welcomemsg
