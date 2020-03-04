@@ -186,8 +186,18 @@ if [ ! -z $quick ]; then
         mkfs.ext4 -F /dev/${targetDrive}2
     fi
     
+    echo "Mounting partitions"
     mount /dev/${targetDrive}2 /mnt
-    mkdir /mnt/efi && mount /dev/${targetDrive}1 /mnt/efi
+    
+    if [ -z $isUEFI ]; then
+        mkdir /mnt/boot && mount /dev/${targetDrive}1 /mnt/boot
+    else 
+        mkdir /mnt/efi && mount /dev/${targetDrive}1 /mnt/efi
+    fi
+    
+    pacstrap /mnt base base-devel vim linux-lts linux-lts-headers --ignore linux
+
+    genfstab -U /mnt >> /mnt/etc/fstab
 
 else
     welcomemsg
