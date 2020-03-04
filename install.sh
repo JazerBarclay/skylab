@@ -73,13 +73,6 @@ EOF
 
 }
 
-
-rankPacMirrors() {
-    cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.backup
-    sed -i 's/^#Server/Server/' /etc/pacman.d/mirrorlist.backup
-    rankmirrors -n 6 /etc/pacman.d/mirrorlist.backup > /etc/pacman.d/mirrorlist
-}
-
 # Welcome greeting upon first running the script
 welcomemsg() { \
 	whiptail --title "Welcome!" --msgbox "Welcome to Skylab!\\n\\nThis script will automatically install Arch to your given specification!" 10 60
@@ -195,9 +188,6 @@ if [ ! -z $quick ]; then
     
     mount /dev/${targetDrive}2 /mnt
     mkdir /mnt/efi && mount /dev/${targetDrive}1 /mnt/efi
-
-
-    rankPacMirrors
 
 else
     welcomemsg
