@@ -155,7 +155,7 @@ if [ ! -z $quick ]; then
     printRED "Enter password (asked once so please ensure correct)"
     read -s userPass
 
-    echo "UEFI: "
+    printf "UEFI: "
     [ -z isUEFI ] && echo "No" || echo "Yes"
     echo "Keyboard: $keyboard"
     echo "Username: $name"
