@@ -162,9 +162,13 @@ if [ ! -z $quick ]; then
     printRED "Enter password (asked once so please ensure correct)"
     read -s userPass
 
+    printRED "Enter system hostname"
+    read hostName
+
     printf "UEFI: "
     [ -z isUEFI ] && echo "No" || echo "Yes"
     echo "Keyboard: $keyboard"
+    echo "Hostname: " $hostName
     echo "Username: $name"
     echo "Password: ****"
     echo "Drive: /dev/$targetDrive"
