@@ -129,6 +129,13 @@ getUserPass() {
 	done ;
 }
 
+getHostname() {
+    hostName=$(whiptail --inputbox "Enter Hostname" 10 60 3>&1 1>&2 2>&3 3>&1) || error "Exitted hostname entry"
+	while ! echo "$hostName" | grep "^[a-z_][a-z0-9_-]*$" >/dev/null 2>&1; do
+		hostName=$(whiptail --inputbox --nocancel "Hostname not valid. Give a hostname beginning with a letter, with only lowercase letters, - or _." 10 60 3>&1 1>&2 2>&3 3>&1)
+	done
+}
+
 # run parameters
 while getopts "hdq" o; do case "${o}" in
 	h) usage && exit ;;
@@ -195,9 +202,21 @@ if [ ! -z $quick ]; then
         mkdir /mnt/efi && mount /dev/${targetDrive}1 /mnt/efi
     fi
     
-    pacstrap /mnt base base-devel vim linux-lts linux-lts-headers --ignore linux
+    pacstrap /mnt base base-devel vim zsh linux-lts linux-lts-headers --ignore linux
 
     genfstab -U /mnt >> /mnt/etc/fstab
+
+arch-chroot /mnt /bin/bash <<EOF
+hwclock --systohc
+ln -sf /usr/share/zoneinfo/Europe/London /etc/localtime
+sed -i '1s/^/en_GB.UTF-8 UTF-8 /' /etc/local.gen
+locale-gen
+echo "LANG=en_US.UTF-8" > /etc/locale.conf
+echo "KEYMAP=$keyboardSelected" > /etc/vconsole.conf
+echo $hostName > /etc/hostname
+echo "127.0.0.1     $hostName" >> /etc/hosts
+echo $pass1 | passwd "$1" --stdin
+EOF
 
 else
     welcomemsg
