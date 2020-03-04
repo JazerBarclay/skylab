@@ -1,5 +1,8 @@
 #!/bin/sh
 
+RED='\033[0;31m'
+NC='\033[0m'
+
 # Message to show how the command can be run
 usage() {
     echo "Usage: $0 [options]..."
@@ -8,12 +11,67 @@ usage() {
     echo "Arguments:"
     echo "  -d, dry run the script with only prompts"
     echo "  -h, prints usage (like you just have)"
-    echo "  -q, run with minimal prompts (uses my settings)"
+    echo "  -q, run with minimal prompts using my settings"
     echo ""
+}
+
+printRED() { printf "\n${RED}$*${NC}\n"; }
+
+menu_from_array () {
+    select item; do
+        # Check the selected menu item number
+        if [ 1 -le "$REPLY" ] && [ "$REPLY" -le $# ]; then
+            printf "${RED}Selected:${NC} $item"
+            break;
+        else
+            echo "Wrong selection: Select any number from 1-$#"
+        fi
+    done
 }
 
 # Exit with error taking a message parameter
 error() { clear; printf "Exitting: %s\\n\\n" "$1"; exit 1; }
+
+partition_bios_drive() {
+
+sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' << EOF | sudo fdisk $1
+  g # clear the in memory partition table with GPT
+  n # new partition
+  1 # partition number 1
+    # default - start at beginning of disk 
+  +512M # 512 MB boot parttion
+  t # change partition type
+  4 # set to BIOS boot
+  n # new partition
+  2 # partition number 2
+    # default, start immediately after preceding partition
+    # default, extend partition to end of disk
+  p # print the in-memory partition table
+  w # write the partition table and quit
+EOF
+
+}
+
+partition_efi_drive() {
+
+sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' << EOF | sudo fdisk $1
+  g # clear the in memory partition table with GPT
+  n # new partition
+  1 # partition number 1
+    # default - start at beginning of disk 
+  +512M # 512 MB boot/efi parttion
+  t # change partition type
+  1 # set to EFI boot
+  n # new partition
+  2 # partition number 2
+    # default, start immediately after preceding partition
+    # default, extend partition to end of disk
+  p # print the in-memory partition table
+  w # write the partition table and quit
+EOF
+
+}
+
 
 # Welcome greeting upon first running the script
 welcomemsg() { \
@@ -79,17 +137,56 @@ while getopts "hdq" o; do case "${o}" in
 	*) printf "Invalid option: -%s\\n" "$OPTARG" && exit ;;
 esac done
 
-if [ ! -z ${quick+x} ]; then 
-    keyboard="/usr/share/kbd/keymaps/i386/qwerty/uk.map.gz"
-    loadkeys $keyboard
+if [ ! -z $quick ]; then 
+    clear
+
+    keyboard="uk"
+    name=jazer
     checkUEFI
 
-    echo $isUEFI
-    name=jazer
+    printRED "Target Drives Available"
+    sudo lsblk -o name,size,model -d -e7 | tail -n +2
+    printf "\n${RED}Please select the target drive for install${NC}\n"
 
-    selectDrive
-    getUserPass
-    dryrunmsg
+    driveList="$(sudo lsblk -o name -d -e7 | tail -n +2 )"
+    menu_from_array $driveList
+    targetDrive=$item
+
+    printRED "Enter password (asked once so please ensure correct)"
+    read -s userPass
+
+    printf "${RED}UEFI:${NC} " && 
+    echo "Keyboard: $keyboard"
+    echo "Username: $name"
+    echo "Password: ****"
+    echo "Drive: /dev/$targetDrive"
+    echo
+    read -n 1 -s -r -p "Press any key to continue or CTRL+C to exit"
+    
+
+    if [ ! -z ${dryrun} ]; then
+        printf "\nDry Run Complete\n" && exit 1
+    else
+        clear
+        echo "Please press CTRL+C within the next 5 seconds to cancel"
+        sleep 5
+    fi
+
+    echo "Setting keyboard..." && loadkeys $keyboard
+    echo "Setting time-date..." && timedatectl set-ntp true
+    echo "Partitioning Drive..."
+    if [ -z $isUEFI ]; then
+        partition_bios_drive /dev/$targetDrive
+        mkfs.fat -F 32 /dev/${targetDrive}1
+        mkfs.ext4 /dev/${targetDrive}2
+    else 
+        partition_efi_drive /dev/$targetDrive
+        mkfs.fat -F 32 /dev/${targetDrive}1
+        mkfs.ext4 /dev/${targetDrive}2
+    fi
+    
+
+
 
 else
     welcomemsg
@@ -104,9 +201,10 @@ else
     if [ -z ${dryrun+x} ]; then 
         echo "Please press CTRL+C within the next 5 seconds to cancel"
         sleep 5
-        #echo "Unmounting Target Device" && sudo umount /dev/$targetDrive?* >/dev/null 2>&1
-        #echo "Setting disk to GPT" && sgdisk -z /dev/$targetDrive  >/dev/null 2>&1
-        #
+        echo "Unmounting target disk" && sudo umount /dev/$targetDrive?* >/dev/null 2>&1
+        echo "Setting disk to GPT" && sgdisk -z /dev/$targetDrive  >/dev/null 2>&1 || echo "Failed to set GPT"
+        echo "Formatting disk"
+
     else
         echo "Dry Run"
         sleep 5
