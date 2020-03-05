@@ -227,6 +227,9 @@ echo "127.0.0.1     $hostName" >> /etc/hosts
 echo "root:${userPass}" | chpasswd
 echo "Installing wifi packages"
 pacman --noconfirm -S iw wpa_supplicant dialog
+
+echo "Installing grub"
+pacman --noconfirm -S grub efibootmgr dosfstools os-prober mtools
 EOF
 
 if [ -z $isUEFI ]; then
