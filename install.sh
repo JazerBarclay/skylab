@@ -189,16 +189,16 @@ if [ ! -z $quick ]; then
 
     echo "Wiping disk"
     sgdisk --zap-all /dev/$targetDrive
-    
+
     echo "Partitioning Drive..."
     if [ -z $isUEFI ]; then
         partition_bios_drive /dev/$targetDrive
-        mkfs.fat -F 32 /dev/${targetDrive}1
-        mkfs.ext4 -F /dev/${targetDrive}2
+        yes | mkfs.fat -F 32 /dev/${targetDrive}1
+        yes | mkfs.ext4 -F /dev/${targetDrive}2
     else 
         partition_efi_drive /dev/$targetDrive
-        mkfs.fat -F 32 /dev/${targetDrive}1
-        mkfs.ext4 -F /dev/${targetDrive}2
+        yes | mkfs.fat -F 32 /dev/${targetDrive}1
+        yes | mkfs.ext4 -F /dev/${targetDrive}2
     fi
     
     echo "Mounting partitions"
