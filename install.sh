@@ -207,7 +207,7 @@ if [ ! -z $quick ]; then
     
     mkdir -p /mnt/boot && mount /dev/${targetDrive}1 /mnt/boot
     
-    yes '' | pacstrap /mnt base base-devel vim zsh linux-lts linux-lts-headers --ignore linux
+    yes '' | pacstrap /mnt base base-devel sudo vim zsh linux-lts linux-lts-headers --ignore linux
 
     genfstab -U -p /mnt >> /mnt/etc/fstab
 
@@ -238,6 +238,12 @@ else
 arch-chroot /mnt /bin/bash <<EOF
 echo "Installing boot loader"
 bootctl --path=/boot install
+cat << GRUB > /boot/loader/entries/arch.conf
+title          Arch Linux
+linux          /vmlinuz-linux
+initrd         /initramfs-linux.img
+options        root=LABEL=Skylab rw
+GRUB
 EOF
 fi
 
