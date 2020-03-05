@@ -127,6 +127,7 @@ getUserPass() {
 		pass1=$(whiptail --nocancel --passwordbox "Passwords do not match.\\n\\nEnter password again." 8 60 3>&1 1>&2 2>&3 3>&1)
 		pass2=$(whiptail --nocancel --passwordbox "Retype password." 8 60 3>&1 1>&2 2>&3 3>&1)
 	done ;
+    userPass=$pass1
 }
 
 getHostname() {
@@ -206,7 +207,7 @@ if [ ! -z $quick ]; then
     
     mkdir -p /mnt/boot && mount /dev/${targetDrive}1 /mnt/boot
     
-    yes '' | pacstrap /mnt base base-devel vim zsh iw wpa_supplicant dialog wpa_actiond linux-lts linux-lts-headers --ignore linux
+    yes '' | pacstrap /mnt base base-devel vim zsh linux-lts linux-lts-headers --ignore linux
 
     genfstab -U -p /mnt >> /mnt/etc/fstab
 
@@ -220,7 +221,9 @@ echo "KEYMAP=$keyboardSelected" > /etc/vconsole.conf
 echo $hostName > /etc/hostname
 echo "127.0.0.1     localhost" >> /etc/hosts
 echo "127.0.0.1     $hostName" >> /etc/hosts
-echo "root:${pass1}" | chpasswd
+echo "root:${userPass}" | chpasswd
+echo "Installing wifi packages"
+pacman --noconfirm -S iw wpa_supplicant dialog wpa_actiond
 EOF
 
 if [ -z $isUEFI ]; then
