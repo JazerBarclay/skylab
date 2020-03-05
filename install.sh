@@ -230,12 +230,17 @@ echo "127.0.0.1     $hostName" >> /etc/hosts
 echo "root:${userPass}" | chpasswd
 echo "Installing wifi packages"
 pacman --noconfirm -S netctl dhcpcd wpa_supplicant dialog
-echo "Installing grub"
+echo "Installing grub bootloader"
 pacman --noconfirm -S grub efibootmgr dosfstools os-prober mtools
+echo "Installing core packages"
+pacman --noconfirm -S git
 EOF
 
 if [ -z $isUEFI ]; then
-    echo ""
+arch-chroot /mnt /bin/bash <<EOF
+grub-install --target=i386-pc --recheck /dev/${targetDrive}
+grub-mkconfig -o /boot/grub/grub.cfg
+EOF
 else 
 arch-chroot /mnt /bin/bash <<EOF
 echo "Installing Grub boot loader"
@@ -248,6 +253,8 @@ fi
 
 arch-chroot /mnt /bin/bash <<EOF
 chsh -s /usr/bin/zsh root
+usermod -m -G wheel -s /usr/bin/zsh jazer
+echo "jazer:${userPass}" | chpasswd
 EOF
 
 else
