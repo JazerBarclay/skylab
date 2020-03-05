@@ -207,7 +207,7 @@ if [ ! -z $quick ]; then
     if [ -z $isUEFI ]; then
         mkdir -p /mnt/boot && mount /dev/${targetDrive}1 /mnt/boot
     else 
-        mkdir -p /mnt/efi && mount /dev/${targetDrive}1 /mnt/efi
+        mkdir -p /mnt/boot/efi && mount /dev/${targetDrive}1 /mnt/boot/efi
     fi
     
     yes '' | pacstrap /mnt base base-devel sudo vim zsh linux-lts linux-lts-headers --ignore linux
