@@ -215,7 +215,7 @@ hwclock --systohc
 ln -sf /usr/share/zoneinfo/Europe/London /etc/localtime
 sed -i '1s/^/en_GB.UTF-8 UTF-8 /' /etc/locale.gen
 locale-gen
-echo "LANG=en_US.UTF-8" > /etc/locale.conf
+echo "LANG=en_GB.UTF-8" > /etc/locale.conf
 echo "KEYMAP=$keyboardSelected" > /etc/vconsole.conf
 echo $hostName > /etc/hostname
 echo "127.0.0.1     localhost" >> /etc/hosts
