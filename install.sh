@@ -253,7 +253,7 @@ fi
 
 arch-chroot /mnt /bin/bash <<EOF
 chsh -s /usr/bin/zsh root
-usermod -m -G wheel -s /usr/bin/zsh jazer
+useradd -m -G wheel -s /usr/bin/zsh jazer
 echo "jazer:${userPass}" | chpasswd
 EOF
 
