@@ -217,38 +217,38 @@ if [ ! -z $quick ]; then
 
     genfstab -U -p /mnt >> /mnt/etc/fstab
 
-    arch-chroot /mnt /bin/bash <<EOF
-        hwclock --systohc
-        ln -sf /usr/share/zoneinfo/Europe/London /etc/localtime
-        sed -i '1s/^/en_GB.UTF-8 UTF-8\n/' /etc/locale.gen
-        locale-gen
-        echo "LANG=en_GB.UTF-8" > /etc/locale.conf
-        echo "KEYMAP=$keyboardSelected" > /etc/vconsole.conf
-        echo $hostName > /etc/hostname
-        echo "127.0.0.1     localhost" >> /etc/hosts
-        echo "127.0.0.1     $hostName" >> /etc/hosts
-        echo "root:${userPass}" | chpasswd
-        echo "Installing wifi packages"
-        pacman --noconfirm -S netctl dhcpcd wpa_supplicant dialog
-        echo "Installing grub"
-        pacman --noconfirm -S grub efibootmgr dosfstools os-prober mtools
-    EOF
+arch-chroot /mnt /bin/bash <<EOF
+    hwclock --systohc
+    ln -sf /usr/share/zoneinfo/Europe/London /etc/localtime
+    sed -i '1s/^/en_GB.UTF-8 UTF-8\n/' /etc/locale.gen
+    locale-gen
+    echo "LANG=en_GB.UTF-8" > /etc/locale.conf
+    echo "KEYMAP=$keyboardSelected" > /etc/vconsole.conf
+    echo $hostName > /etc/hostname
+    echo "127.0.0.1     localhost" >> /etc/hosts
+    echo "127.0.0.1     $hostName" >> /etc/hosts
+    echo "root:${userPass}" | chpasswd
+    echo "Installing wifi packages"
+    pacman --noconfirm -S netctl dhcpcd wpa_supplicant dialog
+    echo "Installing grub"
+    pacman --noconfirm -S grub efibootmgr dosfstools os-prober mtools
+EOF
 
     if [ -z $isUEFI ]; then
         echo ""
     else 
-        arch-chroot /mnt /bin/bash <<EOF
-            echo "Installing Grub boot loader"
-            pacman --noconfirm -S grub
-            grub-install --target=x86_64-efi --bootloader-id=SkyLab --recheck /dev/${targetDrive}
-            mkdir -p /boot/grub/locale && cp /usr/share/locale/en\@quot/LC_MESSAGES/grub.mo /boot/grub/locale/en.mo
-            grub-mkconfig -o /boot/grub/grub.cfg
-        EOF
+arch-chroot /mnt /bin/bash <<EOF
+    echo "Installing Grub boot loader"
+    pacman --noconfirm -S grub
+    grub-install --target=x86_64-efi --bootloader-id=SkyLab --recheck /dev/${targetDrive}
+    mkdir -p /boot/grub/locale && cp /usr/share/locale/en\@quot/LC_MESSAGES/grub.mo /boot/grub/locale/en.mo
+    grub-mkconfig -o /boot/grub/grub.cfg
+EOF
     fi
 
-    arch-chroot /mnt /bin/bash <<EOF
-        chsh -s /usr/bin/zsh root
-    EOF
+arch-chroot /mnt /bin/bash <<EOF
+    chsh -s /usr/bin/zsh root
+EOF
 
 else
     welcomemsg
