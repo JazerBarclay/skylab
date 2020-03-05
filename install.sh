@@ -230,7 +230,7 @@ pacman --noconfirm -S iw wpa_supplicant dialog
 EOF
 
 if [ -z $isUEFI ]; then
-
+    echo ""
 else 
 arch-chroot /mnt /bin/bash <<EOF
     echo "Installing Grub boot loader"
