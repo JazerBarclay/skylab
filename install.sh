@@ -200,15 +200,11 @@ if [ ! -z $quick ]; then
     echo "Mounting partitions"
     mount /dev/${targetDrive}2 /mnt
     
-    if [ -z $isUEFI ]; then
-        mkdir /mnt/boot && mount /dev/${targetDrive}1 /mnt/boot
-    else 
-        mkdir -p /mnt/boot/efi && mount /dev/${targetDrive}1 /mnt/boot/efi
-    fi
+    mkdir -p /mnt/boot && mount /dev/${targetDrive}1 /mnt/boot
     
-    pacstrap /mnt base base-devel vim zsh linux-lts linux-lts-headers --ignore linux
+    yes '' | pacstrap /mnt base base-devel vim zsh iw wpa_supplicant dialog whiptail wpa_actiond linux-lts linux-lts-headers --ignore linux
 
-    genfstab -U /mnt >> /mnt/etc/fstab
+    genfstab -U -p /mnt >> /mnt/etc/fstab
 
 arch-chroot /mnt /bin/bash <<EOF
 hwclock --systohc
@@ -220,8 +216,23 @@ echo "KEYMAP=$keyboardSelected" > /etc/vconsole.conf
 echo $hostName > /etc/hostname
 echo "127.0.0.1     localhost" >> /etc/hosts
 echo "127.0.0.1     $hostName" >> /etc/hosts
-
+echo "root:${pass1}" | chpasswd
 EOF
+
+if [ -z $isUEFI ]; then
+arch-chroot /mnt /bin/bash <<EOF
+    echo "Installing Grub boot loader"
+    pacman --noconfirm -S grub
+    grub-install --target=x86_64-efi --bootloader-id=SkyLabUEFI --recheck /dev/${targetDrive}
+    mkdir -p /boot/grub/locale && cp /usr/share/locale/en\@quot/LC_MESSAGES/grub.mo /boot/grub/locale/en.mo
+    grub-mkconfig -o /boot/grub/grub.cfg
+EOF
+else 
+arch-chroot /mnt /bin/bash <<EOF
+echo "Installing boot loader"
+bootctl --path=/boot install
+EOF
+fi
 
 else
     welcomemsg
