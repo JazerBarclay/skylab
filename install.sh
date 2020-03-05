@@ -194,18 +194,21 @@ if [ ! -z $quick ]; then
     echo "Partitioning Drive..."
     if [ -z $isUEFI ]; then
         partition_bios_drive /dev/$targetDrive
-        yes | mkfs.fat -F 32 /dev/${targetDrive}1
-        yes | mkfs.ext4 -F /dev/${targetDrive}2
     else 
         partition_efi_drive /dev/$targetDrive
-        yes | mkfs.fat -F 32 /dev/${targetDrive}1
-        yes | mkfs.ext4 -F /dev/${targetDrive}2
     fi
     
+    yes | mkfs.fat -F 32 /dev/${targetDrive}1
+    yes | mkfs.ext4 -F /dev/${targetDrive}2
+
     echo "Mounting partitions"
     mount /dev/${targetDrive}2 /mnt
     
-    mkdir -p /mnt/boot && mount /dev/${targetDrive}1 /mnt/boot
+    if [ -z $isUEFI ]; then
+        mkdir -p /mnt/boot && mount /dev/${targetDrive}1 /mnt/boot
+    else 
+        mkdir -p /mnt/efi && mount /dev/${targetDrive}1 /mnt/efi
+    fi
     
     yes '' | pacstrap /mnt base base-devel sudo vim zsh linux-lts linux-lts-headers --ignore linux
 
@@ -223,27 +226,18 @@ echo "127.0.0.1     localhost" >> /etc/hosts
 echo "127.0.0.1     $hostName" >> /etc/hosts
 echo "root:${userPass}" | chpasswd
 echo "Installing wifi packages"
-pacman --noconfirm -S iw wpa_supplicant dialog wpa_actiond
+pacman --noconfirm -S iw wpa_supplicant dialog
 EOF
 
 if [ -z $isUEFI ]; then
+
+else 
 arch-chroot /mnt /bin/bash <<EOF
     echo "Installing Grub boot loader"
     pacman --noconfirm -S grub
-    grub-install --target=x86_64-efi --bootloader-id=SkyLabUEFI --recheck /dev/${targetDrive}
+    grub-install --target=x86_64-efi --bootloader-id=SkyLab --recheck /dev/${targetDrive}
     mkdir -p /boot/grub/locale && cp /usr/share/locale/en\@quot/LC_MESSAGES/grub.mo /boot/grub/locale/en.mo
     grub-mkconfig -o /boot/grub/grub.cfg
-EOF
-else 
-arch-chroot /mnt /bin/bash <<EOF
-echo "Installing boot loader"
-bootctl --path=/boot install
-cat << GRUB > /boot/loader/entries/arch.conf
-title          Arch Linux
-linux          /vmlinuz-linux
-initrd         /initramfs-linux.img
-options        root=LABEL=Skylab rw
-GRUB
 EOF
 fi
 
