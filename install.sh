@@ -203,7 +203,7 @@ if [ ! -z $quick ]; then
     if [ -z $isUEFI ]; then
         mkdir /mnt/boot && mount /dev/${targetDrive}1 /mnt/boot
     else 
-        mkdir /mnt/efi && mount /dev/${targetDrive}1 /mnt/efi
+        mkdir /mnt/EFI && mount /dev/${targetDrive}1 /mnt/EFI
     fi
     
     pacstrap /mnt base base-devel vim zsh linux-lts linux-lts-headers --ignore linux
@@ -213,13 +213,14 @@ if [ ! -z $quick ]; then
 arch-chroot /mnt /bin/bash <<EOF
 hwclock --systohc
 ln -sf /usr/share/zoneinfo/Europe/London /etc/localtime
-sed -i '1s/^/en_GB.UTF-8 UTF-8 /' /etc/local.gen
+sed -i '1s/^/en_GB.UTF-8 UTF-8 /' /etc/locale.gen
 locale-gen
 echo "LANG=en_US.UTF-8" > /etc/locale.conf
 echo "KEYMAP=$keyboardSelected" > /etc/vconsole.conf
 echo $hostName > /etc/hostname
+echo "127.0.0.1     localhost" >> /etc/hosts
 echo "127.0.0.1     $hostName" >> /etc/hosts
-echo $pass1 | passwd "$1" --stdin
+
 EOF
 
 else
