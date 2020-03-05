@@ -206,7 +206,7 @@ if [ ! -z $quick ]; then
     
     mkdir -p /mnt/boot && mount /dev/${targetDrive}1 /mnt/boot
     
-    yes '' | pacstrap /mnt base base-devel vim zsh iw wpa_supplicant dialog whiptail wpa_actiond linux-lts linux-lts-headers --ignore linux
+    yes '' | pacstrap /mnt base base-devel vim zsh iw wpa_supplicant dialog wpa_actiond linux-lts linux-lts-headers --ignore linux
 
     genfstab -U -p /mnt >> /mnt/etc/fstab
 
