@@ -167,7 +167,7 @@ if [ ! -z $quick ]; then
     read hostName
 
     printf "UEFI: "
-    [ -z isUEFI ] && echo "No" || echo "Yes"
+    [ -z $isUEFI ] && echo "No" || echo "Yes"
     echo "Keyboard: $keyboard"
     echo "Hostname: " $hostName
     echo "Username: $name"
