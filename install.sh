@@ -188,6 +188,9 @@ if [ ! -z $quick ]; then
     echo "Setting keyboard..." && loadkeys $keyboard
     echo "Setting time-date..." && timedatectl set-ntp true
 
+    echo "Unmounting /dev/$targetDrive"
+    umount /dev/${targetDrive}?*
+
     echo "Wiping disk"
     sgdisk --zap-all /dev/$targetDrive
 
