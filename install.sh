@@ -186,6 +186,10 @@ if [ ! -z $quick ]; then
 
     echo "Setting keyboard..." && loadkeys $keyboard
     echo "Setting time-date..." && timedatectl set-ntp true
+
+    echo "Wiping disk"
+    sgdisk --zap-all /dev/$targetDrive
+    
     echo "Partitioning Drive..."
     if [ -z $isUEFI ]; then
         partition_bios_drive /dev/$targetDrive
