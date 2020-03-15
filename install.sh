@@ -223,7 +223,7 @@ ln -sf /usr/share/zoneinfo/Europe/London /etc/localtime
 sed -i '1s/^/en_GB.UTF-8 UTF-8\n/' /etc/locale.gen
 locale-gen
 echo "LANG=en_GB.UTF-8" > /etc/locale.conf
-echo "KEYMAP=$keyboardSelected" > /etc/vconsole.conf
+echo "KEYMAP=$keyboard" > /etc/vconsole.conf
 echo $hostName > /etc/hostname
 echo "127.0.0.1     localhost" >> /etc/hosts
 echo "127.0.0.1     $hostName" >> /etc/hosts
@@ -234,6 +234,9 @@ echo "Installing grub bootloader"
 pacman --noconfirm -S grub efibootmgr dosfstools os-prober mtools
 echo "Installing core packages"
 pacman --noconfirm -S git
+echo "Installing display packages"
+pacman --noconfirm -S xorg gnome gnome-extra gdm
+systemctl enable gdm
 EOF
 
 if [ -z $isUEFI ]; then
@@ -255,7 +258,19 @@ arch-chroot /mnt /bin/bash <<EOF
 chsh -s /usr/bin/zsh root
 useradd -m -G wheel -s /usr/bin/zsh jazer
 echo "jazer:${userPass}" | chpasswd
+echo "# One sudo login authorises all other terminals a free upgrade" >> /etc/sudoers
+echo "Defaults !tty_tickets" >> /etc/sudoers
+echo "" >> /etc/sudoers
+echo "# Uncomment below to allow sudo without password on wheel users" >> /etc/sudoers
+echo "# %wheel ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+echo "" >> /etc/sudoers
 EOF
+
+#pushd /home/jazer
+#git clone https://aur.archlinux.org/yay.git
+#popd && pushd /home/jazer/yay
+#makepkg -si
+#popd
 
 else
     welcomemsg
