@@ -213,7 +213,7 @@ if [ ! -z $quick ]; then
         mkdir -p /mnt/boot/efi && mount /dev/${targetDrive}1 /mnt/boot/efi
     fi
     
-    yes '' | pacstrap /mnt base base-devel sudo vim zsh linux-lts linux-lts-headers --ignore linux
+    yes '' | pacstrap /mnt base base-devel sudo vim zsh linux-lts linux-firmware linux-lts-headers --ignore linux
 
     genfstab -U -p /mnt >> /mnt/etc/fstab
 
