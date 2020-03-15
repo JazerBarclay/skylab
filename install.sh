@@ -262,7 +262,7 @@ echo "# One sudo login authorises all other terminals a free upgrade" >> /etc/su
 echo "Defaults !tty_tickets" >> /etc/sudoers
 echo "" >> /etc/sudoers
 echo "# Uncomment below to allow sudo without password on wheel users" >> /etc/sudoers
-echo "# %wheel ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+echo "%wheel ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 echo "" >> /etc/sudoers
 EOF
 
