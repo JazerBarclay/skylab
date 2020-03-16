@@ -211,6 +211,7 @@ else
     getUserPass
 
     getHostname
+    selectDotFiles
 
     preinstallmsg
 fi
@@ -224,6 +225,15 @@ else
 fi
 
 # --------------------------- Install --------------------------- #
+
+printRED "Updating Install Packages"
+pacman -Sy
+pacman --noconfirm -S reflector
+sleep 3s
+
+printRED "Updating Pacman Mirrorlist"
+reflector --latest 200 --protocol http --protocol https --sort rate --save /etc/pacman.d/mirrorlist
+sleep 3s
 
 printRED "Setting keyboard..." && loadkeys $keyboard
 sleep 3s
@@ -320,6 +330,7 @@ sleep 3s
 
 printRED "Setting up user ${name}"
 arch-chroot /mnt /bin/bash <<EOF
+
 chsh -s /usr/bin/zsh root
 useradd -m -G wheel -s /usr/bin/zsh ${name}
 echo "${name}:${userPass}" | chpasswd
@@ -329,4 +340,9 @@ echo "" >> /etc/sudoers
 echo "# Uncomment below to allow sudo without password on wheel users" >> /etc/sudoers
 echo "%wheel ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 echo "" >> /etc/sudoers
+
+git clone --bare https://github.com/${githubUsername}/${githubDotfiles}.git $HOME/dotfiles
+alias config='/usr/bin/git --git-dir=$HOME/dotfiles/ --work-tree=$HOME'
+config checkout -f
+
 EOF
