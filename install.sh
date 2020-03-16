@@ -3,7 +3,7 @@
 RED='\033[0;31m'
 NC='\033[0m'
 
-printRED() { printf "\n${RED}$*${NC}\n"; }
+printRED() { printf "${RED}$*${NC}\n"; }
 
 # Message to show how the command can be run
 usage() {
@@ -80,7 +80,7 @@ welcomemsg() { \
 
 preinstallmsg() { \
 	whiptail --title "Let's get started" --yes-button "Let's Go!" --no-button "Wait, nah" --yesno \
-    "This script will now install Arch...\nUser: $name \nDrive: $targetDrive" 10 50 || { clear; exit; }
+    "This script will now install Arch...\nUEFI: $isUEFI\nHostname: $hostName\nUsername: $name \nDrive: $targetDrive" 10 50 || { clear; exit; }
 }
 
 dryrunmsg() { \
@@ -137,7 +137,8 @@ getHostname() {
 	done
 }
 
-# run parameters
+# --------------------------- Params --------------------------- #
+
 while getopts "hdq" o; do case "${o}" in
 	h) usage && exit ;;
 	d) dryrun=1 ;;
@@ -145,78 +146,127 @@ while getopts "hdq" o; do case "${o}" in
 	*) printf "Invalid option: -%s\\n" "$OPTARG" && exit ;;
 esac done
 
-if [ ! -z $quick ]; then 
-    clear
 
+# --------------------------- Setup --------------------------- #
+
+if [ ! -z $quick ]; then
     keyboard="uk"
     name=jazer
     checkUEFI
+    githubUsername="jazerbarclay"
+    githubDotfiles="dotfiles"
+
+    clear
+    echo "UEFI: $isUEFI"
+    echo "Username: $name"
+    echo "Keyboard: $keyboard"
+    echo ""
 
     printRED "Target Drives Available"
     sudo lsblk -o name,size,model -d -e7 | tail -n +2
-    printf "\n${RED}Please select the target drive for install${NC}\n"
+    echo ""
+    printRED "Please select the target drive for install"
 
     driveList="$(sudo lsblk -o name -d -e7 | tail -n +2 )"
     menu_from_array $driveList
     targetDrive=$item
 
+    clear
+    echo "UEFI: $isUEFI"
+    echo "Selected Drive: $targetDrive"
+    echo "Username: $name"
+    echo "Keyboard: $keyboard"
+    echo ""
+
     printRED "Enter password (asked once so please ensure correct)"
     read -s userPass
 
+    clear
+    echo "UEFI: $isUEFI"
+    echo "Selected Drive: $targetDrive"
+    echo "Username: $name"
+    echo "Keyboard: $keyboard"
+    echo ""
+
     printRED "Enter system hostname"
     read hostName
+    clear
 
     printf "UEFI: "
     [ -z $isUEFI ] && echo "No" || echo "Yes"
     echo "Keyboard: $keyboard"
     echo "Hostname: " $hostName
     echo "Username: $name"
-    echo "Password: ****"
     echo "Drive: /dev/$targetDrive"
     echo
     read -n 1 -s -r -p "Press any key to continue or CTRL+C to exit"
-    
 
-    if [ ! -z ${dryrun} ]; then
-        printf "\nDry Run Complete\n" && exit 1
-    else
-        clear
-        echo "Please press CTRL+C within the next 5 seconds to cancel"
-        sleep 5
-    fi
+else
+    welcomemsg
+    checkUEFI
 
-    echo "Setting keyboard..." && loadkeys $keyboard
-    echo "Setting time-date..." && timedatectl set-ntp true
+    selectKeyboard
+    selectDrive
+    getUsername
+    getUserPass
 
-    echo "Unmounting /dev/$targetDrive"
-    umount /dev/${targetDrive}?*
+    getHostname
 
-    echo "Wiping disk"
-    sgdisk --zap-all /dev/$targetDrive
+    preinstallmsg
+fi
 
-    echo "Partitioning Drive..."
-    if [ -z $isUEFI ]; then
-        partition_bios_drive /dev/$targetDrive
-    else 
-        partition_efi_drive /dev/$targetDrive
-    fi
-    
-    yes | mkfs.fat -F 32 /dev/${targetDrive}1
-    yes | mkfs.ext4 -F /dev/${targetDrive}2
+if [ ! -z ${dryrun} ]; then
+    printf "\nDry Run Complete\n" && exit 0
+else
+    clear
+    echo "Please press CTRL+C within the next 5 seconds to cancel"
+    sleep 5
+fi
 
-    echo "Mounting partitions"
-    mount /dev/${targetDrive}2 /mnt
-    
-    if [ -z $isUEFI ]; then
-        mkdir -p /mnt/boot && mount /dev/${targetDrive}1 /mnt/boot
-    else 
-        mkdir -p /mnt/boot/efi && mount /dev/${targetDrive}1 /mnt/boot/efi
-    fi
-    
-    yes '' | pacstrap /mnt base base-devel sudo vim zsh linux-lts linux-firmware linux-lts-headers --ignore linux
+# --------------------------- Install --------------------------- #
 
-    genfstab -U -p /mnt >> /mnt/etc/fstab
+printRED "Setting keyboard..." && loadkeys $keyboard && sleep 5
+printRED "Setting time-date..." && timedatectl set-ntp true && sleep 5
 
+printRED "Unmounting /dev/$targetDrive"
+umount /dev/${targetDrive}?*
+sleep 5
+
+printRED "Wiping disk"
+sgdisk --zap-all /dev/$targetDrive
+sleep 5
+
+printRED "Partitioning Drive..."
+if [ -z $isUEFI ]; then
+    partition_bios_drive /dev/$targetDrive
+else 
+    partition_efi_drive /dev/$targetDrive
+fi
+sleep 5
+
+yes | mkfs.fat -F 32 /dev/${targetDrive}1 && sleep 5
+yes | mkfs.ext4 -F /dev/${targetDrive}2 && sleep 5
+
+printRED "Mounting partitions"
+mount /dev/${targetDrive}2 /mnt
+sleep 5
+
+if [ -z $isUEFI ]; then
+    mkdir -p /mnt/boot && mount /dev/${targetDrive}1 /mnt/boot
+else 
+    mkdir -p /mnt/boot/efi && mount /dev/${targetDrive}1 /mnt/boot/efi
+fi
+sleep 5
+
+printRED "Installing Base Packages"
+yes '' | pacstrap /mnt base base-devel sudo vim zsh linux-lts linux-firmware linux-lts-headers --ignore linux
+sleep 5
+
+printRED "Generating fstab"
+genfstab -U -p /mnt >> /mnt/etc/fstab
+sleep 5
+
+printRED "Setting System Settings"
 arch-chroot /mnt /bin/bash <<EOF
 hwclock --systohc
 ln -sf /usr/share/zoneinfo/Europe/London /etc/localtime
@@ -228,23 +278,28 @@ echo $hostName > /etc/hostname
 echo "127.0.0.1     localhost" >> /etc/hosts
 echo "127.0.0.1     $hostName" >> /etc/hosts
 echo "root:${userPass}" | chpasswd
+sleep 5
 echo "Installing wifi packages"
 pacman --noconfirm -S netctl dhcpcd wpa_supplicant dialog
+sleep 5
 echo "Installing grub bootloader"
 pacman --noconfirm -S grub efibootmgr dosfstools os-prober mtools
+sleep 5
 echo "Installing core packages"
 pacman --noconfirm -S git
-echo "Installing display packages"
-pacman --noconfirm -S xorg gnome gnome-extra gdm
-systemctl enable gdm
+sleep 5
 EOF
 
+printRED "Installing GRUB"
 if [ -z $isUEFI ]; then
+
 arch-chroot /mnt /bin/bash <<EOF
 grub-install --target=i386-pc --recheck /dev/${targetDrive}
 grub-mkconfig -o /boot/grub/grub.cfg
 EOF
-else 
+
+else
+
 arch-chroot /mnt /bin/bash <<EOF
 echo "Installing Grub boot loader"
 pacman --noconfirm -S grub
@@ -252,12 +307,14 @@ grub-install --target=x86_64-efi --bootloader-id=SkyLab --recheck /dev/${targetD
 mkdir -p /boot/grub/locale && cp /usr/share/locale/en\@quot/LC_MESSAGES/grub.mo /boot/grub/locale/en.mo
 grub-mkconfig -o /boot/grub/grub.cfg
 EOF
+
 fi
 
+printRED "Setting up user ${name}"
 arch-chroot /mnt /bin/bash <<EOF
 chsh -s /usr/bin/zsh root
-useradd -m -G wheel -s /usr/bin/zsh jazer
-echo "jazer:${userPass}" | chpasswd
+useradd -m -G wheel -s /usr/bin/zsh ${name}
+echo "${name}:${userPass}" | chpasswd
 echo "# One sudo login authorises all other terminals a free upgrade" >> /etc/sudoers
 echo "Defaults !tty_tickets" >> /etc/sudoers
 echo "" >> /etc/sudoers
@@ -265,35 +322,3 @@ echo "# Uncomment below to allow sudo without password on wheel users" >> /etc/s
 echo "%wheel ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 echo "" >> /etc/sudoers
 EOF
-
-#pushd /home/jazer
-#git clone https://aur.archlinux.org/yay.git
-#popd && pushd /home/jazer/yay
-#makepkg -si
-#popd
-
-else
-    welcomemsg
-    checkUEFI
-
-    selectKeyboard
-    selectDrive
-    getUsername
-    getUserPass
-
-    preinstallmsg
-    if [ -z ${dryrun+x} ]; then 
-        echo "Please press CTRL+C within the next 5 seconds to cancel"
-        sleep 5
-        echo "Unmounting target disk" && sudo umount /dev/$targetDrive?* >/dev/null 2>&1
-        echo "Setting disk to GPT" && sgdisk -z /dev/$targetDrive  >/dev/null 2>&1 || echo "Failed to set GPT"
-        echo "Formatting disk"
-
-    else
-        echo "Dry Run"
-        sleep 5
-
-
-    fi
-
-fi
