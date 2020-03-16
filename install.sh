@@ -11,8 +11,8 @@ usage() {
     echo "Installs Arch based on user input"
     echo 
     echo "Arguments:"
-    echo "  -d, dry run the script with only prompts"
     echo "  -h, prints usage (like you just have)"
+    echo "  -d, dry run the script with only prompts"
     echo "  -q, run with minimal prompts using my settings"
     echo ""
 }
@@ -288,8 +288,8 @@ arch-chroot /mnt /bin/bash <<EOF
 hwclock --systohc
 ln -sf /usr/share/zoneinfo/Europe/London /etc/localtime
 sed -i '1s/^/en_GB.UTF-8 UTF-8\n/' /etc/locale.gen
-locale-gen
 echo "LANG=en_GB.UTF-8" > /etc/locale.conf
+locale-gen
 echo "KEYMAP=$keyboard" > /etc/vconsole.conf
 echo $hostName > /etc/hostname
 echo "127.0.0.1     localhost" >> /etc/hosts
@@ -340,6 +340,6 @@ echo "" >> /etc/sudoers
 echo "# Uncomment below to allow sudo without password on wheel users" >> /etc/sudoers
 echo "%wheel ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 echo "" >> /etc/sudoers
-su $name -c 'git clone --bare https://github.com/${githubUsername}/${githubDotfiles}.git $HOME/dotfiles'
-su $name -c '/usr/bin/git --git-dir=$HOME/dotfiles/ --work-tree=$HOME checkout -f'
+su $name -c "git clone --bare https://github.com/${githubUsername}/${githubDotfiles}.git /home/${name}/dotfiles"
+su $name -c "/usr/bin/git --git-dir=/home/${name}/dotfiles/ --work-tree=/home/${name} checkout -f"
 EOF
