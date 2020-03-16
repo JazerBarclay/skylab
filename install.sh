@@ -340,9 +340,6 @@ echo "" >> /etc/sudoers
 echo "# Uncomment below to allow sudo without password on wheel users" >> /etc/sudoers
 echo "%wheel ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 echo "" >> /etc/sudoers
-
-git clone --bare https://github.com/${githubUsername}/${githubDotfiles}.git $HOME/dotfiles
-alias config='/usr/bin/git --git-dir=$HOME/dotfiles/ --work-tree=$HOME'
-config checkout -f
-
+su $name -c 'git clone --bare https://github.com/${githubUsername}/${githubDotfiles}.git $HOME/dotfiles'
+su $name -c '/usr/bin/git --git-dir=$HOME/dotfiles/ --work-tree=$HOME checkout -f'
 EOF
