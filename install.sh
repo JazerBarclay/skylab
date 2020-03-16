@@ -96,7 +96,7 @@ selectKeyboard() {
     keyboardDir="/usr/share/kbd/keymaps"
     keyboardList=$(find /usr/share/kbd/keymaps -name '*.map.gz' | sort -z | awk '{print substr($1,24,length($1))}' | tr '/' ' ' |  awk '{ printf " %s ",substr($NF,1,length($NF)-7) ; for (i=1; i<=NF; i++) printf "/%s", $i }' | awk '{printf "uk /i386/qwerty/uk.map.gz us /i386/qwerty/us.map.gz %s",$0}')
     keyboardSelected="$(whiptail --title "Keyboard Selection" --menu "Choose your keyboard layout" 24 100 16 $keyboardList 3>&1 1>&2 2>&3)" || error "Cancelled Keyboard Select)"
-    echo $keyboardSelected
+    keyboard=$keyboardSelected
 }
 
 # Select Drive Dialog
@@ -225,16 +225,19 @@ fi
 
 # --------------------------- Install --------------------------- #
 
-printRED "Setting keyboard..." && loadkeys $keyboard && sleep 5
-printRED "Setting time-date..." && timedatectl set-ntp true && sleep 5
+printRED "Setting keyboard..." && loadkeys $keyboard
+sleep 3s
+
+printRED "Setting time-date..." && timedatectl set-ntp true
+sleep 3s
 
 printRED "Unmounting /dev/$targetDrive"
 umount /dev/${targetDrive}?*
-sleep 5
+sleep 3s
 
 printRED "Wiping disk"
 sgdisk --zap-all /dev/$targetDrive
-sleep 5
+sleep 3s
 
 printRED "Partitioning Drive..."
 if [ -z $isUEFI ]; then
@@ -242,29 +245,33 @@ if [ -z $isUEFI ]; then
 else 
     partition_efi_drive /dev/$targetDrive
 fi
-sleep 5
+sleep 3s
 
-yes | mkfs.fat -F 32 /dev/${targetDrive}1 && sleep 5
-yes | mkfs.ext4 -F /dev/${targetDrive}2 && sleep 5
+printRED "Generating Filesystems"
+yes | mkfs.fat -F 32 /dev/${targetDrive}1
+sleep 3s
+
+yes | mkfs.ext4 -F /dev/${targetDrive}2
+sleep 3s
 
 printRED "Mounting partitions"
 mount /dev/${targetDrive}2 /mnt
-sleep 5
+sleep 3s
 
 if [ -z $isUEFI ]; then
     mkdir -p /mnt/boot && mount /dev/${targetDrive}1 /mnt/boot
 else 
     mkdir -p /mnt/boot/efi && mount /dev/${targetDrive}1 /mnt/boot/efi
 fi
-sleep 5
+sleep 3s
 
 printRED "Installing Base Packages"
 yes '' | pacstrap /mnt base base-devel sudo vim zsh linux-lts linux-firmware linux-lts-headers --ignore linux
-sleep 5
+sleep 3s
 
 printRED "Generating fstab"
 genfstab -U -p /mnt >> /mnt/etc/fstab
-sleep 5
+sleep 3s
 
 printRED "Setting System Settings"
 arch-chroot /mnt /bin/bash <<EOF
@@ -278,16 +285,16 @@ echo $hostName > /etc/hostname
 echo "127.0.0.1     localhost" >> /etc/hosts
 echo "127.0.0.1     $hostName" >> /etc/hosts
 echo "root:${userPass}" | chpasswd
-sleep 5
+sleep 3s
 echo "Installing wifi packages"
 pacman --noconfirm -S netctl dhcpcd wpa_supplicant dialog
-sleep 5
+sleep 3s
 echo "Installing grub bootloader"
 pacman --noconfirm -S grub efibootmgr dosfstools os-prober mtools
-sleep 5
+sleep 3s
 echo "Installing core packages"
 pacman --noconfirm -S git
-sleep 5
+sleep 3s
 EOF
 
 printRED "Installing GRUB"
@@ -309,6 +316,7 @@ grub-mkconfig -o /boot/grub/grub.cfg
 EOF
 
 fi
+sleep 3s
 
 printRED "Setting up user ${name}"
 arch-chroot /mnt /bin/bash <<EOF
