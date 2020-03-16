@@ -303,7 +303,7 @@ echo "Installing grub bootloader"
 pacman --noconfirm -S grub efibootmgr dosfstools os-prober mtools
 sleep 3s
 echo "Installing core packages"
-pacman --noconfirm -S git
+pacman --noconfirm -S git wget curl 
 sleep 3s
 EOF
 
