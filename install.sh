@@ -302,8 +302,8 @@ sleep 3s
 echo "Installing grub bootloader"
 pacman --noconfirm -S grub efibootmgr dosfstools os-prober mtools
 sleep 3s
-echo "Installing core packages"
-pacman --noconfirm -S git wget curl openssh
+echo "Installing recommended packages"
+pacman --noconfirm -S git wget curl openssh nmap ddrescue
 systemctl enable sshd.service
 sleep 3s
 EOF
@@ -356,5 +356,14 @@ chown -R $name:$name yay
 cd yay
 su ${name} -c "makepkg -si --noconfirm"
 popd
+
+EOF
+sleep 3s
+
+printRED "Installing DE"
+arch-chroot /mnt /bin/bash <<EOF
+
+pacman --noconfirm -S xorg-server lightdm lightdm-gtk-greeter xf86-video-intel
+pacman --noconfirm -S i3-gaps i3menu dmenu gnome-terminal thunar firefox ttf-dejavu feh
 
 EOF
