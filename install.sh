@@ -343,6 +343,7 @@ echo "%wheel ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 echo "" >> /etc/sudoers
 su $name -c "git clone --bare https://github.com/${githubUsername}/${githubDotfiles}.git /home/${name}/dotfiles"
 su $name -c "/usr/bin/git --git-dir=/home/${name}/dotfiles/ --work-tree=/home/${name} checkout -f"
+su $name -c "ssh-keygen -o -a 100 -t ed25519 -f /home/${name}/.ssh/id_ed25519 -C '${name}@${hostName}'"
 EOF
 sleep 3s
 
