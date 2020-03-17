@@ -303,7 +303,8 @@ echo "Installing grub bootloader"
 pacman --noconfirm -S grub efibootmgr dosfstools os-prober mtools
 sleep 3s
 echo "Installing core packages"
-pacman --noconfirm -S git wget curl 
+pacman --noconfirm -S git wget curl openssh
+systemctl enable sshd.service
 sleep 3s
 EOF
 
@@ -342,4 +343,17 @@ echo "%wheel ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 echo "" >> /etc/sudoers
 su $name -c "git clone --bare https://github.com/${githubUsername}/${githubDotfiles}.git /home/${name}/dotfiles"
 su $name -c "/usr/bin/git --git-dir=/home/${name}/dotfiles/ --work-tree=/home/${name} checkout -f"
+EOF
+sleep 3s
+
+printRED "Installing yay"
+arch-chroot /mnt /bin/bash <<EOF
+
+pushd /tmp
+git clone https://aur.archlinux.org/yay.git
+chown -R $name:$name yay
+cd yay
+su ${name} -c "makepkg -si --noconfirm"
+popd
+
 EOF
