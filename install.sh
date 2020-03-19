@@ -363,7 +363,10 @@ sleep 3s
 printRED "Installing DE"
 arch-chroot /mnt /bin/bash <<EOF
 
-pacman --noconfirm -S xorg-server lightdm lightdm-gtk-greeter xf86-video-intel
-pacman --noconfirm -S i3-gaps i3menu dmenu gnome-terminal thunar firefox ttf-dejavu feh
-
+pacman --noconfirm -S xorg-server xorg-xrandr lightdm lightdm-gtk-greeter xf86-video-intel
+pacman --noconfirm -S i3-gaps i3menu dmenu gnome-terminal thunar firefox chromium ttf-dejavu feh
+pacman --noconfirm -S alsa-firmware code
 EOF
+
+echo ""
+printRED "Skylab Installation Complete"
