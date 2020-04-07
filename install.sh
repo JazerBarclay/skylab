@@ -365,8 +365,14 @@ arch-chroot /mnt /bin/bash <<EOF
 
 pacman --noconfirm -S xorg-server xorg-xrandr lightdm lightdm-gtk-greeter xf86-video-intel
 pacman --noconfirm -S i3-gaps i3menu dmenu gnome-terminal thunar firefox chromium ttf-dejavu feh
-pacman --noconfirm -S alsa-firmware code
+pacman --noconfirm -S alsa-firmware code libnewt docker docker-compose dosfstools unzip unrar neofetch tor torbrowser-launcher redshift gvfs-smb xargs findutils
+
+pushd /home/${name}
+mkdir -p Documents Downloads Pictures/Wallpapers Videos projects
+popd
+
 EOF
 
 echo ""
 printRED "Skylab Installation Complete"
+echo ""
