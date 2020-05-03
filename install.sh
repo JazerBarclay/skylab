@@ -361,12 +361,15 @@ popd
 EOF
 sleep 3s
 
-printRED "Installing DE"
+printRED "Installing Desktop Environment"
 arch-chroot /mnt /bin/bash <<EOF
 
-pacman --noconfirm -S xorg-server xorg-xrandr lightdm lightdm-gtk-greeter xf86-video-intel
-pacman --noconfirm -S i3-gaps i3menu dmenu gnome-terminal thunar firefox chromium ttf-dejavu feh
-pacman --noconfirm -S alsa-firmware code libnewt docker docker-compose dosfstools unzip unrar neofetch tor torbrowser-launcher redshift gvfs-smb findutils
+pacman --noconfirm -S xorg-server xorg-xrandr xorg-xbacklight lightdm lightdm-gtk-greeter xf86-video-intel ttf-dejavu 
+pacman --noconfirm -S i3-gaps i3status i3blocks dmenu feh alsa-firmware  libnewt dosfstools unzip unrar nmap ddrescue rsync
+pacman --noconfirm -S gnome-terminal thunar redshift gvfs-smb findutils neofetch gparted conky
+pacman --noconfirm -S code docker docker-compose firefox chromium tor torbrowser-launcher vlc obs-studio
+
+yes '' | yay -S gtkpod discord spotify intel-undervolt virtualbox-bin
 
 pushd /home/${name}
 mkdir -p Documents Downloads Pictures/Wallpapers Videos projects
