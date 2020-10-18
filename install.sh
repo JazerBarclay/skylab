@@ -365,7 +365,8 @@ printRED "Installing Core Packages"
 arch-chroot /mnt /bin/bash <<EOF
 
 pacman --noconfirm -S xorg-server xorg-xrandr xorg-xbacklight lightdm lightdm-gtk-greeter xf86-video-intel ttf-dejavu 
-pacman --noconfirm -S i3-gaps i3status i3blocks dmenu feh alsa-firmware  libnewt dosfstools unzip unrar nmap ddrescue rsync
+pacman --noconfirm -S budgie-desktop
+pacman --noconfirm -S alsa-firmware libnewt dosfstools unzip unrar nmap ddrescue rsync
 pacman --noconfirm -S gnome-terminal thunar redshift gvfs-smb findutils neofetch gparted conky
 pacman --noconfirm -S code docker docker-compose firefox chromium tor torbrowser-launcher vlc obs-studio
 
