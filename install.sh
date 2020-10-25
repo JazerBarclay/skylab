@@ -311,6 +311,7 @@ EOF
 printRED "Installing GRUB"
 if [ -z $isUEFI ]; then
 
+printRED "BIOS BOOT"
 arch-chroot /mnt /bin/bash <<EOF
 grub-install --target=i386-pc --recheck /dev/${targetDrive}
 grub-mkconfig -o /boot/grub/grub.cfg
@@ -318,6 +319,7 @@ EOF
 
 else
 
+printRED "UEFI BOOT"
 arch-chroot /mnt /bin/bash <<EOF
 echo "Installing Grub boot loader"
 pacman --noconfirm -S grub
@@ -333,7 +335,7 @@ printRED "Setting up user ${name}"
 arch-chroot /mnt /bin/bash <<EOF
 
 chsh -s /usr/bin/zsh root
-useradd -m -G wheel -s /usr/bin/zsh ${name}
+useradd -m -G wheel,audio,docker -s /usr/bin/zsh ${name}
 echo "${name}:${userPass}" | chpasswd
 echo "# One sudo login authorises all other terminals a free upgrade" >> /etc/sudoers
 echo "Defaults !tty_tickets" >> /etc/sudoers
@@ -364,15 +366,26 @@ sleep 3s
 printRED "Installing Core Packages"
 arch-chroot /mnt /bin/bash <<EOF
 
-pacman --noconfirm -S xorg-server xorg-xrandr xorg-xbacklight lightdm lightdm-gtk-greeter xf86-video-intel ttf-dejavu 
-pacman --noconfirm -S i3-gaps i3status i3blocks dmenu feh alsa-firmware
-pacman --noconfirm -S alsa-firmware libnewt dosfstools unzip unrar nmap ddrescue rsync
-pacman --noconfirm -S gnome-terminal thunar redshift gvfs-smb findutils neofetch gparted conky
-pacman --noconfirm -S code docker docker-compose firefox chromium tor torbrowser-launcher vlc obs-studio
+# xorg and lightdm
+pacman --noconfirm -S xorg-server xorg-xrandr xorg-xbacklight lightdm lightdm-gtk-greeter xf86-video-intel
+# i3, dmenu and system stats
+pacman --noconfirm -S i3-gaps i3status i3blocks dmenu nitrogen brightnessctl alsa-utils alsa-firmware pulseaudio
+# System Stats
+pacman --noconfig -S sysstat acpi lm_sensors scrot neofetch
+# Core Terminal Utils
+pacman --noconfirm -S libnewt dosfstools unzip unrar nmap ddrescue rsync
+# Core Window Utils
+pacman --noconfirm -S termite thunar gvfs-smb findutils gparted feh redshift lxappearance
+# Fonts
+pacman --noconfirm -S ttf-dejavu ttf-hack ttf-font-awesome noto-fonts-emoji adobe-source-code-pro-fonts adobe-source-han-sans-jp-fonts
+# Developer Stuff
+pacman --noconfirm -S code docker docker-compose chromium firefox tor torbrowser-launcher vlc obs-studio transmission-gtk
+
 
 sudo systemctl enable lightdm
 sudo systemctl enable dhcpcd
-sudo systemctl enable dhcpcd@enp0s3.service
+sudo systemctl enable netctl-auto@wlp3s0
+sudo systemctl enable dhcpcd@enp0s25
 sudo ip link set enp0s3 up
 
 pushd /home/${name}
@@ -384,7 +397,44 @@ EOF
 printRED "Installing AUR Packages"
 arch-chroot /mnt /bin/bash <<EOF
 
-yes '' | yay -S gtkpod discord spotify intel-undervolt virtualbox-bin
+yes '' | yay -Syu
+
+yes '' | yay -S gtkpod
+
+yes '' | yay -S discord
+
+# Setup new gpg key for spotify
+curl -sS https://download.spotify.com/debian/pubkey_0D811D58.gpg | gpg --import -
+yes '' | yay -S spotify
+
+yes '' | yay -S virtualbox-bin
+
+yes '' | yay -S intel-undervolt
+
+# Thinkpad fan
+yes '' | yay -S thinkfan-git
+echo "options thinkpad_acpi fan_control=1" > /etc/modprobe.d/modprobe.conf
+echo "options thinkpad_acpi fan_control=1" > /usr/lib/modprobe.d/thinkpad_acpi.conf
+modprobe thinkpad_acpi
+
+echo "tp_fan /proc/acpi/ibm/fan\n" > /etc/thinkfan.conf
+hwmon /sys/devices/platform/coretemp.0/hwmon/hwmon4/temp1_input
+hwmon /sys/devices/platform/coretemp.0/hwmon/hwmon4/temp2_input
+hwmon /sys/devices/platform/coretemp.0/hwmon/hwmon4/temp3_input
+hwmon /sys/devices/virtual/thermal/thermal_zone0/hwmon0/temp1_input
+
+(0,     0,      49)
+(1,     30,     59)
+(2,     35,     69)
+(3,     40,     79)
+(4,     45,     89)
+(5,     50,     99)
+(7,     60,     32767)" > /etc/thinkfan.conf
+
+sudo modprobe thinkpad_acpi
+
+sudo systemctl enable thinkfan
+
 
 EOF
 
