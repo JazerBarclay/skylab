@@ -335,7 +335,7 @@ printRED "Setting up user ${name}"
 arch-chroot /mnt /bin/bash <<EOF
 
 chsh -s /usr/bin/zsh root
-useradd -m -G wheel,audio,docker -s /usr/bin/zsh ${name}
+useradd -m -G wheel -s /usr/bin/zsh ${name}
 echo "${name}:${userPass}" | chpasswd
 echo "# One sudo login authorises all other terminals a free upgrade" >> /etc/sudoers
 echo "Defaults !tty_tickets" >> /etc/sudoers
