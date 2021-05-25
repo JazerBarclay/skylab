@@ -142,6 +142,7 @@ getHostname() {
 while getopts "hdq" o; do case "${o}" in
 	h) usage && exit ;;
 	d) dryrun=1 ;;
+    t) "$@" && exit ;;
     q) quick=1 ;;
 	*) printf "Invalid option: -%s\\n" "$OPTARG" && exit ;;
 esac done
