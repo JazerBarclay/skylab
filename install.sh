@@ -364,20 +364,20 @@ sleep 3s
 printRED "Installing Core Packages"
 arch-chroot /mnt /bin/bash <<EOF
 
-# xorg and lightdm
-pacman --noconfirm -S xorg-server xorg-xrandr xorg-xbacklight lightdm lightdm-gtk-greeter xf86-video-intel
-# i3, dmenu and system stats
-pacman --noconfirm -S i3-gaps i3status i3blocks dmenu nitrogen brightnessctl alsa-utils alsa-firmware pulseaudio
+# xorg and intel video
+pacman --noconfirm -S xorg xf86-video-intel
+# Gnome
+pacman --noconfirm -S gnome
 # System Stats
 pacman --noconfig -S sysstat acpi lm_sensors scrot neofetch
 # Core Terminal Utils
 pacman --noconfirm -S libnewt dosfstools unzip unrar nmap ddrescue rsync
 # Core Window Utils
-pacman --noconfirm -S termite thunar gvfs-smb findutils gparted feh redshift lxappearance
+pacman --noconfirm -S termite findutils gparted
 # Fonts
 pacman --noconfirm -S ttf-dejavu ttf-hack ttf-font-awesome noto-fonts-emoji adobe-source-code-pro-fonts adobe-source-han-sans-jp-fonts
 # Developer Stuff
-pacman --noconfirm -S code docker docker-compose chromium firefox tor torbrowser-launcher vlc obs-studio transmission-gtk
+pacman --noconfirm -S code docker docker-compose chromium firefox vlc
 
 
 sudo systemctl enable lightdm
@@ -397,42 +397,7 @@ arch-chroot /mnt /bin/bash <<EOF
 
 yes '' | yay -Syu
 
-yes '' | yay -S gtkpod
-
-yes '' | yay -S discord
-
-# Setup new gpg key for spotify
-curl -sS https://download.spotify.com/debian/pubkey_0D811D58.gpg | gpg --import -
-yes '' | yay -S spotify
-
-yes '' | yay -S virtualbox-bin
-
 yes '' | yay -S intel-undervolt
-
-# Thinkpad fan
-yes '' | yay -S thinkfan-git
-echo "options thinkpad_acpi fan_control=1" > /etc/modprobe.d/modprobe.conf
-echo "options thinkpad_acpi fan_control=1" > /usr/lib/modprobe.d/thinkpad_acpi.conf
-modprobe thinkpad_acpi
-
-echo "tp_fan /proc/acpi/ibm/fan\n" > /etc/thinkfan.conf
-hwmon /sys/devices/platform/coretemp.0/hwmon/hwmon4/temp1_input
-hwmon /sys/devices/platform/coretemp.0/hwmon/hwmon4/temp2_input
-hwmon /sys/devices/platform/coretemp.0/hwmon/hwmon4/temp3_input
-hwmon /sys/devices/virtual/thermal/thermal_zone0/hwmon0/temp1_input
-
-(0,     0,      49)
-(1,     30,     59)
-(2,     35,     69)
-(3,     40,     79)
-(4,     45,     89)
-(5,     50,     99)
-(7,     60,     32767)" > /etc/thinkfan.conf
-
-sudo modprobe thinkpad_acpi
-
-sudo systemctl enable thinkfan
-
 
 EOF
 
