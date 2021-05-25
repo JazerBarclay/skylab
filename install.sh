@@ -228,11 +228,9 @@ fi
 
 printRED "Updating Install Packages"
 pacman -Sy
-pacman --noconfirm -S reflector
-sleep 3s
 
 printRED "Updating Pacman Mirrorlist"
-./rank.sh
+./rank.sh > /etc/pacman.d/mirrorlist
 sleep 3s
 
 printRED "Setting keyboard..." && loadkeys $keyboard
