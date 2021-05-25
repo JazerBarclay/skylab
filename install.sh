@@ -380,11 +380,8 @@ pacman --noconfirm -S ttf-dejavu ttf-hack ttf-font-awesome noto-fonts-emoji adob
 pacman --noconfirm -S code docker docker-compose chromium firefox vlc
 
 
-sudo systemctl enable lightdm
-sudo systemctl enable dhcpcd
-sudo systemctl enable netctl-auto@wlp3s0
-sudo systemctl enable dhcpcd@enp0s25
-sudo ip link set enp0s3 up
+sudo systemctl enable gdm
+sudo systemctl enable NetworkManager
 
 pushd /home/${name}
 mkdir -p Documents Downloads Pictures/Wallpapers Videos projects
